@@ -13,6 +13,8 @@ import {
 } from '@ant-design/icons';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import { useDispatch } from 'react-redux';
+import { logout } from '../store/slices/authSlice';
 
 const { Header, Sider, Content } = Layout;
 
@@ -29,9 +31,10 @@ const MainLayout = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    dispatch(logout());
     navigate('/login');
   };
 

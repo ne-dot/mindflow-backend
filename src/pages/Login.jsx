@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Form, Input, Button, Card, message } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { login, clearError } from '../store/slices/authSlice';
 
 const LoginContainer = styled.div`
   display: flex;
@@ -24,19 +26,35 @@ const LoginTitle = styled.h2`
 
 const Login = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { loading, error, isAuthenticated } = useSelector(state => state.auth);
+
+  // 如果已经认证，重定向到仪表盘
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    }
+  }, [isAuthenticated, navigate]);
+
+  // 显示错误消息
+  useEffect(() => {
+    if (error) {
+      message.error(error);
+      dispatch(clearError());
+    }
+  }, [error, dispatch]);
 
   const onFinish = (values) => {
-    // 这里应该是实际的登录API调用
-    console.log('登录信息:', values);
-    
-    // 模拟登录成功
-    if (values.username === 'admin' && values.password === 'admin123') {
-      localStorage.setItem('token', 'fake-jwt-token');
-      message.success('登录成功');
-      navigate('/dashboard');
-    } else {
-      message.error('用户名或密码错误');
-    }
+    // 使用Redux action进行登录
+    dispatch(login({
+      email: values.username,
+      password: values.password
+    })).then((result) => {
+      if (result.meta.requestStatus === 'fulfilled') {
+        message.success('登录成功');
+        navigate('/dashboard');
+      }
+    });
   };
 
   return (
@@ -51,9 +69,9 @@ const Login = () => {
         >
           <Form.Item
             name="username"
-            rules={[{ required: true, message: '请输入用户名!' }]}
+            rules={[{ required: true, message: '请输入邮箱!' }]}
           >
-            <Input prefix={<UserOutlined />} placeholder="用户名" />
+            <Input prefix={<UserOutlined />} placeholder="邮箱" />
           </Form.Item>
           <Form.Item
             name="password"
@@ -65,7 +83,7 @@ const Login = () => {
             />
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit" block>
+            <Button type="primary" htmlType="submit" block loading={loading}>
               登录
             </Button>
           </Form.Item>
