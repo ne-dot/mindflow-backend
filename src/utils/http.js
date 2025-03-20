@@ -1,5 +1,6 @@
 import { message } from 'antd';
 import axios from 'axios';
+
 import ENV from '../config/env';
 
 // Create axios instance
@@ -66,7 +67,7 @@ export const put = (url, data = {}) => {
   return instance.put(url, data);
 };
 
-export const del = (url) => {
+export const del = url => {
   return instance.delete(url);
 };
 
