@@ -52,7 +52,7 @@ const Tools = () => {
     });
   };
 
-  const handleDelete = (toolId) => {
+  const handleDelete = toolId => {
     Modal.confirm({
       title: '确认删除',
       content: '确定要删除这个工具吗？',
@@ -125,9 +125,7 @@ const Tools = () => {
           添加工具
         </Button>
       </div>
-      
       <Table dataSource={tools} columns={columns} rowKey="id" />
-      
       <Modal
         title={editingTool ? '编辑工具' : '添加工具'}
         visible={isModalVisible}

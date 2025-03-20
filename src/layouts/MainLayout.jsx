@@ -1,5 +1,3 @@
-import React, { useState } from 'react';
-import { Layout, Menu, Avatar, Dropdown, Button } from 'antd';
 import {
   MenuUnfoldOutlined,
   MenuFoldOutlined,
@@ -11,21 +9,15 @@ import {
   FileTextOutlined,
   LogoutOutlined,
 } from '@ant-design/icons';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
+import { Layout, Menu, Avatar, Dropdown, Button } from 'antd';
+import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+
 import { logout } from '../store/slices/authSlice';
+import './MainLayout.css';
 
 const { Header, Sider, Content } = Layout;
-
-const Logo = styled.div`
-  height: 32px;
-  margin: 16px;
-  color: white;
-  font-size: 18px;
-  font-weight: bold;
-  text-align: center;
-`;
 
 const MainLayout = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
@@ -84,9 +76,9 @@ const MainLayout = ({ children }) => {
   );
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
+    <Layout className="layout-container">
       <Sider trigger={null} collapsible collapsed={collapsed}>
-        <Logo>{collapsed ? 'Admin' : '后台管理系统'}</Logo>
+        <div className="logo">{collapsed ? 'Admin' : '后台管理系统'}</div>
         <Menu
           theme="dark"
           mode="inline"
@@ -95,29 +87,22 @@ const MainLayout = ({ children }) => {
         />
       </Sider>
       <Layout>
-        <Header style={{ padding: 0, background: '#fff' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 24px' }}>
+        <Header className="header">
+          <div className="header-content">
             <Button
               type="text"
               icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
               onClick={() => setCollapsed(!collapsed)}
             />
             <Dropdown overlay={userMenu} placement="bottomRight">
-              <div style={{ cursor: 'pointer' }}>
+              <div className="user-dropdown">
                 <Avatar icon={<UserOutlined />} />
-                <span style={{ marginLeft: 8 }}>管理员</span>
+                <span className="user-name">管理员</span>
               </div>
             </Dropdown>
           </div>
         </Header>
-        <Content
-          style={{
-            margin: '24px 16px',
-            padding: 24,
-            minHeight: 280,
-            background: '#fff',
-          }}
-        >
+        <Content className="content">
           {children}
         </Content>
       </Layout>

@@ -1,0 +1,39 @@
+.layout-container {
+  min-height: 100vh;
+}
+
+.header {
+  padding: 0;
+  background: #fff;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 24px;
+}
+
+.user-dropdown {
+  cursor: pointer;
+}
+
+.user-name {
+  margin-left: 8px;
+}
+
+.content {
+  margin: 24px 16px;
+  padding: 24px;
+  min-height: 280px;
+  background: #fff;
+}
+
+.logo {
+  height: 32px;
+  margin: 16px;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+}

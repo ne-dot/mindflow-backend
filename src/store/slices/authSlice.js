@@ -1,21 +1,19 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+
 import { userApi } from '../../services/api';
 
 // 异步登录action
-export const login = createAsyncThunk(
-  'auth/login',
-  async (credentials, { rejectWithValue }) => {
-    try {
-      const response = await userApi.adminLogin({
-        email: credentials.email,
-        password: credentials.password
-      });
-      return response;
-    } catch (error) {
-      return rejectWithValue(error.response?.data || { message: '登录失败' });
-    }
+export const login = createAsyncThunk('auth/login', async (credentials, { rejectWithValue }) => {
+  try {
+    const response = await userApi.adminLogin({
+      email: credentials.email,
+      password: credentials.password,
+    });
+    return response;
+  } catch (error) {
+    return rejectWithValue(error.response?.data || { message: '登录失败' });
   }
-);
+});
 
 // 从localStorage加载token
 const loadTokenFromStorage = () => {
@@ -34,7 +32,7 @@ const initialState = {
   ...loadTokenFromStorage(),
   isAuthenticated: !!localStorage.getItem('token'),
   loading: false,
-  error: null
+  error: null,
 };
 
 // 创建auth slice
@@ -42,7 +40,7 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    logout: (state) => {
+    logout: state => {
       localStorage.removeItem('token');
       localStorage.removeItem('refresh_token');
       state.user = null;
@@ -50,13 +48,13 @@ const authSlice = createSlice({
       state.refreshToken = null;
       state.isAuthenticated = false;
     },
-    clearError: (state) => {
+    clearError: state => {
       state.error = null;
-    }
+    },
   },
-  extraReducers: (builder) => {
+  extraReducers: builder => {
     builder
-      .addCase(login.pending, (state) => {
+      .addCase(login.pending, state => {
         state.loading = true;
         state.error = null;
       })
@@ -65,7 +63,7 @@ const authSlice = createSlice({
         state.token = action.payload.access_token;
         state.refreshToken = action.payload.refresh_token;
         state.isAuthenticated = true;
-        
+
         // 保存到localStorage
         localStorage.setItem('token', action.payload.access_token);
         localStorage.setItem('refresh_token', action.payload.refresh_token);
@@ -74,7 +72,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload?.message || '登录失败';
       });
-  }
+  },
 });
 
 // 导出actions和reducer

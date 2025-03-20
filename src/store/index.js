@@ -1,4 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
+
 import authReducer from './slices/authSlice';
 
 // 配置Redux store
@@ -7,7 +8,7 @@ const store = configureStore({
     auth: authReducer,
     // 这里可以添加其他reducer
   },
-  middleware: (getDefaultMiddleware) =>
+  middleware: getDefaultMiddleware =>
     getDefaultMiddleware({
       serializableCheck: {
         // 忽略非序列化值的检查

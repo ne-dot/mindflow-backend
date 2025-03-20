@@ -1,0 +1,24 @@
+# Build outputs
+build/
+dist/
+coverage/
+
+# Node modules
+node_modules/
+
+# Environment files
+.env
+.env.*
+
+# Cache directories
+.cache/
+.npm/
+
+# Editor directories
+.idea/
+.vscode/
+
+# Misc files
+*.log
+*.lock
+.eslintrc.js

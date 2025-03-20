@@ -8,7 +8,7 @@ const ENV = {
   },
   production: {
     API_BASE_URL: 'https://api.example.com',
-  }
+  },
 };
 
 // 当前环境，可以根据环境变量或其他方式动态设置
