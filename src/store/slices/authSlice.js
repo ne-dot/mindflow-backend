@@ -1,11 +1,11 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
-import { userApi } from '../../services/api';
+import UserApi from '../../services/user';
 
 // 异步登录action
 export const login = createAsyncThunk('auth/login', async (credentials, { rejectWithValue }) => {
   try {
-    const response = await userApi.adminLogin({
+    const response = await UserApi.adminLogin({
       email: credentials.email,
       password: credentials.password,
     });

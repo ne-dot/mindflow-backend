@@ -1,26 +1,64 @@
 import { PlusOutlined, EditOutlined, DeleteOutlined, UploadOutlined } from '@ant-design/icons';
-import { Table, Button, Space, Modal, Form, Input, Select, Typography, message, Upload } from 'antd';
-import React, { useState } from 'react';
+import { Table, Button, Space, Modal, Form, Input, InputNumber, Select, Typography, message, Upload, Spin } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+
+import { fetchAgents, createAgentConfig, updateAgentConfig, deleteAgentConfig } from '../store/slices/agentsSlice';
 
 const { Title } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
 
 const Agents = () => {
-  const [agents, setAgents] = useState([
-    { id: 1, name: '客服助手', type: 'customer_service', description: '处理客户咨询和问题', status: 'active' },
-    { id: 2, name: '数据分析师', type: 'data_analysis', description: '分析数据并生成报告', status: 'active' },
-    { id: 3, name: '内容创作者', type: 'content_creation', description: '创建各种类型的内容', status: 'inactive' },
-  ]);
+  const dispatch = useDispatch();
+  // In your component
+  const { agents, loading, pagination, error } = useSelector(state => state.agents || {
+    agents: [],
+    loading: false,
+    pagination: {
+      page: 1,
+      page_size: 10,
+      total: 0,
+      total_pages: 1
+    },
+    error: null
+  });
   
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [editingAgent, setEditingAgent] = useState(null);
 
+  // 组件挂载时获取数据
+  useEffect(() => {
+    dispatch(fetchAgents())
+      .unwrap()
+      .catch(err => {
+        console.error('获取Agent列表出错:', err);
+        message.error(`获取Agent列表失败: ${err}`);
+      });
+  }, [dispatch]);
+
+  // 显示错误信息
+  useEffect(() => {
+    if (error) {
+      message.error(error);
+    }
+  }, [error]);
+
   const showModal = (agent = null) => {
     setEditingAgent(agent);
     if (agent) {
-      form.setFieldsValue(agent);
+      // 设置表单值，匹配后端字段
+      form.setFieldsValue({
+        name: agent.name,
+        name_zh: agent.name_zh,
+        name_en: agent.name_en,
+        description: agent.description,
+        price: agent.pricing,
+        visibility: agent.visibility,
+        status: agent.status,
+        type: agent.type
+      });
     } else {
       form.resetFields();
     }
@@ -33,22 +71,46 @@ const Agents = () => {
 
   const handleSubmit = () => {
     form.validateFields().then(values => {
+      // 构建API请求数据
+      const { price, ...otherValues } = values;
+      const agentData = {
+        ...otherValues,
+        pricing: price
+      };
+      
       if (editingAgent) {
         // 更新Agent
-        setAgents(agents.map(agent => 
-          agent.id === editingAgent.id ? { ...agent, ...values } : agent
-        ));
-        message.success('Agent已更新');
+        dispatch(updateAgentConfig({ id: editingAgent.key_id, data: agentData }))
+          .unwrap()
+          .then(() => {
+            message.success('Agent已更新');
+            setIsModalVisible(false);
+            // 刷新列表
+            dispatch(fetchAgents({
+              page: pagination.page,
+              page_size: pagination.page_size
+            }));
+          })
+          .catch(err => {
+            console.error('更新Agent出错:', err);
+          });
       } else {
         // 添加新Agent
-        const newAgent = {
-          id: agents.length + 1,
-          ...values,
-        };
-        setAgents([...agents, newAgent]);
-        message.success('Agent已添加');
+        dispatch(createAgentConfig(agentData))
+          .unwrap()
+          .then(() => {
+            message.success('Agent已添加');
+            setIsModalVisible(false);
+            // 刷新列表
+            dispatch(fetchAgents({
+              page: pagination.page,
+              page_size: pagination.page_size
+            }));
+          })
+          .catch(err => {
+            console.error('添加Agent出错:', err);
+          });
       }
-      setIsModalVisible(false);
     });
   };
 
@@ -57,38 +119,80 @@ const Agents = () => {
       title: '确认删除',
       content: '确定要删除这个Agent吗？',
       onOk: () => {
-        setAgents(agents.filter(agent => agent.id !== agentId));
-        message.success('Agent已删除');
+        dispatch(deleteAgentConfig(agentId))
+          .unwrap()
+          .then(() => {
+            message.success('Agent已删除');
+            // 刷新列表
+            dispatch(fetchAgents({
+              page: pagination.page,
+              page_size: pagination.page_size
+            }));
+          })
+          .catch(err => {
+            console.error('删除Agent出错:', err);
+          });
       },
     });
   };
 
+  // 处理表格分页变化
+  const handleTableChange = (pagination) => {
+    dispatch(fetchAgents({
+      page: pagination.current,
+      page_size: pagination.pageSize
+    }));
+  };
+
   const columns = [
-    { title: 'ID', dataIndex: 'id', key: 'id' },
-    { title: '名称', dataIndex: 'name', key: 'name' },
     { 
-      title: '类型', 
-      dataIndex: 'type', 
-      key: 'type',
-      render: type => {
-        const typeMap = {
-          'customer_service': '客户服务',
-          'data_analysis': '数据分析',
-          'content_creation': '内容创作'
-        };
-        return typeMap[type] || type;
-      }
+      title: '中文名/英文名', 
+      key: 'names',
+      render: (_, record) => (
+        <>
+          <div>{record.name_zh || record.name}</div>
+          <div style={{ color: '#999' }}>{record.name_en}</div>
+        </>
+      )
     },
     { title: '描述', dataIndex: 'description', key: 'description', ellipsis: true },
+    { title: '价格', dataIndex: 'pricing', key: 'pricing', render: price => `¥${price}` },
+    { title: '可见性', dataIndex: 'visibility', key: 'visibility' },
     { 
       title: '状态', 
       dataIndex: 'status', 
       key: 'status',
-      render: status => (
-        <span style={{ color: status === 'active' ? 'green' : 'red' }}>
-          {status === 'active' ? '活跃' : '禁用'}
-        </span>
-      )
+      render: status => {
+        let color;
+        let text;
+        
+        switch(status) {
+          case 'published':
+            color = 'green';
+            text = '已发布';
+            break;
+          case 'draft':
+            color = 'orange';
+            text = '草稿';
+            break;
+          case 'inactive':
+            color = 'red';
+            text = '禁用';
+            break;
+          default:
+            color = 'gray';
+            text = status;
+        }
+        
+        return <span style={{ color }}>{text}</span>;
+      }
+    },
+    { 
+      title: '更新时间', 
+      dataIndex: 'update_date', 
+      key: 'update_date',
+      render: timestamp => new Date(timestamp * 1000).toLocaleString('zh-CN'),
+      sorter: (a, b) => a.update_date - b.update_date
     },
     {
       title: '操作',
@@ -107,7 +211,7 @@ const Agents = () => {
             danger 
             icon={<DeleteOutlined />} 
             size="small"
-            onClick={() => handleDelete(record.id)}
+            onClick={() => handleDelete(record.key_id)}
           >
             删除
           </Button>
@@ -125,11 +229,26 @@ const Agents = () => {
         </Button>
       </div>
       
-      <Table dataSource={agents} columns={columns} rowKey="id" />
+      <Spin spinning={loading}>
+        <Table 
+          dataSource={agents} 
+          columns={columns} 
+          rowKey="key_id"
+          pagination={{
+            current: pagination.page,
+            pageSize: pagination.page_size,
+            total: pagination.total,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: total => `共 ${total} 条`
+          }}
+          onChange={handleTableChange}
+        />
+      </Spin>
       
       <Modal
         title={editingAgent ? '编辑Agent' : '添加Agent'}
-        visible={isModalVisible}
+        open={isModalVisible}
         onCancel={handleCancel}
         onOk={handleSubmit}
         destroyOnClose
@@ -144,16 +263,16 @@ const Agents = () => {
             <Input placeholder="请输入Agent名称" />
           </Form.Item>
           <Form.Item
-            name="type"
-            label="类型"
-            rules={[{ required: true, message: '请选择Agent类型' }]}
+            name="name_zh"
+            label="中文名称"
           >
-            <Select placeholder="请选择Agent类型">
-              <Option value="customer_service">客户服务</Option>
-              <Option value="data_analysis">数据分析</Option>
-              <Option value="content_creation">内容创作</Option>
-              <Option value="other">其他</Option>
-            </Select>
+            <Input placeholder="请输入Agent中文名称" />
+          </Form.Item>
+          <Form.Item
+            name="name_en"
+            label="英文名称"
+          >
+            <Input placeholder="请输入Agent英文名称" />
           </Form.Item>
           <Form.Item
             name="description"
@@ -163,13 +282,55 @@ const Agents = () => {
             <TextArea rows={4} placeholder="请输入Agent描述" />
           </Form.Item>
           <Form.Item
+            name="price"
+            label="价格"
+            initialValue={0}
+            rules={[{ required: true, message: '请输入价格' }]}
+          >
+            <InputNumber 
+              min={0} 
+              precision={2} 
+              style={{ width: '100%' }} 
+              placeholder="请输入价格" 
+              addonAfter="元" 
+            />
+          </Form.Item>
+          <Form.Item
+            name="visibility"
+            label="可见性"
+            initialValue="public"
+            rules={[{ required: true, message: '请选择可见性' }]}
+          >
+            <Select placeholder="请选择可见性">
+              <Option value="public">公开</Option>
+              <Option value="private">私有</Option>
+              <Option value="restricted">受限</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
             name="status"
             label="状态"
+            initialValue="published"
             rules={[{ required: true, message: '请选择状态' }]}
           >
             <Select placeholder="请选择状态">
-              <Option value="active">活跃</Option>
+              <Option value="published">已发布</Option>
+              <Option value="draft">草稿</Option>
               <Option value="inactive">禁用</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item
+            name="type"
+            label="类型"
+            initialValue="assistant"
+            rules={[{ required: true, message: '请选择Agent类型' }]}
+          >
+            <Select placeholder="请选择Agent类型">
+              <Option value="assistant">助手</Option>
+              <Option value="customer_service">客户服务</Option>
+              <Option value="data_analysis">数据分析</Option>
+              <Option value="content_creation">内容创作</Option>
+              <Option value="other">其他</Option>
             </Select>
           </Form.Item>
           <Form.Item

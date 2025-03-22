@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
-import modelApi from '../../services/modelApi';
+import modelApi from '../../services/model';
 
 // 异步获取所有模型配置
 export const fetchModelConfigs = createAsyncThunk(
