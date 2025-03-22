@@ -1,6 +1,6 @@
 import { PlusOutlined } from '@ant-design/icons';
-import { Typography, Button, Spin, Table } from 'antd';
-import React from 'react';
+import { Typography, Button, Spin, Table, message } from 'antd';
+import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { fetchTools } from '../../store/slices/toolsSlice';
@@ -12,7 +12,8 @@ const { Title } = Typography;
 
 const Tools = () => {
   const dispatch = useDispatch();
-  const { tools, loading } = useSelector(state => state.tools);
+  const { tools, loading, pagination, error } = useSelector(state => state.tools);
+  const [fetchError, setFetchError] = useState(null);
   const { 
     isModalVisible, 
     showModal, 
@@ -20,13 +21,22 @@ const Tools = () => {
     columns
   } = useToolsHook();
 
-  React.useEffect(() => {
+  useEffect(() => {
     dispatch(fetchTools())
       .unwrap()
       .catch(err => {
         console.error('获取工具列表出错:', err);
+        setFetchError(err);
+        message.error(`获取工具列表失败: ${err}`);
       });
   }, [dispatch]);
+
+  // 显示错误信息
+  useEffect(() => {
+    if (error) {
+      message.error(error);
+    }
+  }, [error]);
 
   return (
     <div>
@@ -37,8 +47,26 @@ const Tools = () => {
         </Button>
       </div>
       
+      {fetchError && (
+        <div style={{ marginBottom: 16, color: 'red' }}>
+          加载失败: {fetchError}
+        </div>
+      )}
+      
       <Spin spinning={loading}>
-        <Table dataSource={tools} columns={columns} rowKey="id" />
+        <Table 
+          dataSource={tools} 
+          columns={columns} 
+          rowKey="id"
+          pagination={{
+            current: pagination?.page || 1,
+            pageSize: pagination?.page_size || 10,
+            total: pagination?.total || 0,
+            onChange: (page, pageSize) => {
+              dispatch(fetchTools({ page, page_size: pageSize }));
+            }
+          }}
+        />
       </Spin>
       
       <ToolForm 

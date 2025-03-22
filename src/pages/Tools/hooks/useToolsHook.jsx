@@ -37,7 +37,7 @@ const useToolsHook = () => {
 
   // 表格列配置
   const columns = [
-    { title: 'ID', dataIndex: 'id', key: 'id', ellipsis: true, width: 250 },
+    // 移除ID列
     { title: '名称', dataIndex: 'name', key: 'name' },
     { 
       title: '类型', 

@@ -1,18 +1,26 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+
 import toolApi from '../../services/toolApi';
 
-// 异步获取所有工具
+// 异步获取所有工具，添加分页参数
+// 异步获取所有工具，修改以适应新的数据结构
 export const fetchTools = createAsyncThunk(
   'tools/fetchTools',
-  async (_, { rejectWithValue }) => {
+  async (params = { page: 1, page_size: 10 }, { rejectWithValue }) => {
     try {
-      const response = await toolApi.getAllTools();
+      const response = await toolApi.getAllTools(params);
       if (response.success) {
-        return response.data;
+        return {
+          // 从 data.items 中获取工具列表
+          tools: response.data.items,
+          // 从 data.pagination 中获取分页信息
+          pagination: response.data.pagination
+        };
       } else {
         return rejectWithValue(response.message || '获取工具列表失败');
       }
     } catch (error) {
+      console.error('获取工具列表异常:', error);
       return rejectWithValue(error.message || '获取工具列表失败');
     }
   }
@@ -74,6 +82,11 @@ const toolsSlice = createSlice({
   name: 'tools',
   initialState: {
     tools: [],
+    pagination: {
+      current: 1,
+      pageSize: 10,
+      total: 0
+    },
     loading: false,
     error: null,
   },
@@ -91,7 +104,8 @@ const toolsSlice = createSlice({
       })
       .addCase(fetchTools.fulfilled, (state, action) => {
         state.loading = false;
-        state.tools = action.payload;
+        state.tools = action.payload.tools;
+        state.pagination = action.payload.pagination;
       })
       .addCase(fetchTools.rejected, (state, action) => {
         state.loading = false;
