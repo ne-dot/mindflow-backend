@@ -32,7 +32,7 @@ const Models = () => {
       })
       .catch(err => {
         console.error('获取模型列表出错:', err);
-        message.error(`获取模型列表失败: ${err}`);
+        message.error(`获取模型列表失败: ${err}`); 
         setLocalLoading(false);
       });
   }, [dispatch]);
