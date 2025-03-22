@@ -14,6 +14,7 @@ const Tools = () => {
   const dispatch = useDispatch();
   const { tools, loading, pagination, error } = useSelector(state => state.tools);
   const [fetchError, setFetchError] = useState(null);
+  const [localLoading, setLocalLoading] = useState(true); // 添加本地loading状态
   const { 
     isModalVisible, 
     showModal, 
@@ -22,12 +23,17 @@ const Tools = () => {
   } = useToolsHook();
 
   useEffect(() => {
+    setLocalLoading(true); // 开始加载时设置loading为true
     dispatch(fetchTools())
       .unwrap()
+      .then(() => {
+        setLocalLoading(false); // 加载成功后设置loading为false
+      })
       .catch(err => {
         console.error('获取工具列表出错:', err);
         setFetchError(err);
         message.error(`获取工具列表失败: ${err}`);
+        setLocalLoading(false); // 加载失败后也要设置loading为false
       });
   }, [dispatch]);
 
@@ -53,7 +59,7 @@ const Tools = () => {
         </div>
       )}
       
-      <Spin spinning={loading}>
+      <Spin spinning={loading || localLoading}> {/* 使用redux的loading状态和本地loading状态 */}
         <Table 
           dataSource={tools} 
           columns={columns} 

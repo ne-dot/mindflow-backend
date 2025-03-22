@@ -94,7 +94,7 @@ const MainLayout = ({ children }) => {
               icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
               onClick={() => setCollapsed(!collapsed)}
             />
-            <Dropdown overlay={userMenu} placement="bottomRight">
+            <Dropdown menu={userMenu} placement="bottomRight">
               <div className="user-dropdown">
                 <Avatar icon={<UserOutlined />} />
                 <span className="user-name">管理员</span>

@@ -2,8 +2,6 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
 import toolApi from '../../services/toolApi';
 
-// 异步获取所有工具，添加分页参数
-// 异步获取所有工具，修改以适应新的数据结构
 export const fetchTools = createAsyncThunk(
   'tools/fetchTools',
   async (params = { page: 1, page_size: 10 }, { rejectWithValue }) => {

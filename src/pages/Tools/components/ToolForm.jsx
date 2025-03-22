@@ -22,20 +22,23 @@ const ToolForm = ({ visible, editingTool }) => {
       });
   }, [dispatch]);
   
-  React.useEffect(() => {
-    if (editingTool) {
-      form.setFieldsValue({
-        name: editingTool.name,
-        type: editingTool.tool_type,
-        endpoint: editingTool.endpoint,
-        description: editingTool.description,
-        enabled: editingTool.is_enabled,
-        config_params: JSON.stringify(editingTool.config_params || {})
-      });
-    } else {
-      form.resetFields();
+  // Only set form values when the modal is visible
+  useEffect(() => {
+    if (visible) {
+      if (editingTool) {
+        form.setFieldsValue({
+          name: editingTool.name,
+          type: editingTool.tool_type,
+          endpoint: editingTool.endpoint,
+          description: editingTool.description,
+          enabled: editingTool.is_enabled,
+          config_params: JSON.stringify(editingTool.config_params || {})
+        });
+      } else {
+        form.resetFields();
+      }
     }
-  }, [editingTool, form]);
+  }, [editingTool, form, visible]);
 
   const handleCancel = () => {
     window.toolFormState.setIsModalVisible(false);
