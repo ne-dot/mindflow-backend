@@ -3,7 +3,7 @@ import { Button, Typography, message, Spin } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { fetchAgents } from '../store/slices/agentsSlice';
+import { fetchAgents } from '../../store/slices/agentsSlice';
 
 import AgentForm from './components/AgentForm';
 import AgentTable from './components/AgentTable';
@@ -67,6 +67,7 @@ const Agents = () => {
 
   // 处理表格分页变化
   const handleTableChange = (pagination) => {
+    console.log('handleTableChange', pagination);
     dispatch(fetchAgents({
       page: pagination.current,
       page_size: pagination.pageSize

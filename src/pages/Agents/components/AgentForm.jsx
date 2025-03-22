@@ -1,13 +1,13 @@
-import { UploadOutlined } from '@ant-design/icons';
-import { Modal, Form, Input, InputNumber, Select, Upload, Button, message } from 'antd';
-import React, { useEffect } from 'react';
+
+import { Modal, Form, Input, InputNumber, Select, message } from 'antd';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { 
   createAgentConfig, 
-  updateAgentConfig,
   getVisibilityDisplay,
-  getStatusDisplay
+  getStatusDisplay,
+  fetchAgents
 } from '../../../store/slices/agentsSlice';
 
 const { Option } = Select;
@@ -17,6 +17,7 @@ const AgentForm = ({ visible, agent, onCancel, onSuccess }) => {
   const dispatch = useDispatch();
   const [form] = Form.useForm();
   const { visibilityOptions, statusOptions } = useSelector(state => state.agents);
+  const [loading, setLoading] = useState(false);
 
   // 当agent变化时，更新表单
   useEffect(() => {
@@ -34,42 +35,49 @@ const AgentForm = ({ visible, agent, onCancel, onSuccess }) => {
         });
       } else {
         form.resetFields();
+        // 设置默认值
+        form.setFieldsValue({
+          visibility: 'public',
+          status: 'draft',
+          type: 'assistant',
+          price: 0
+        });
       }
     }
   }, [visible, agent, form]);
 
   const handleSubmit = () => {
     form.validateFields().then(values => {
-      // 构建API请求数据
+      // 设置loading状态
+      setLoading(true);
+      
+      // 构建API请求数据，确保字段名与API一致
       const { price, ...otherValues } = values;
       const agentData = {
         ...otherValues,
-        pricing: price
+        pricing: price // 确保使用pricing字段而不是price
       };
       
-      if (agent) {
-        // 更新Agent
-        dispatch(updateAgentConfig({ id: agent.key_id, data: agentData }))
-          .unwrap()
-          .then(() => {
-            message.success('Agent已更新');
-            onSuccess();
-          })
-          .catch(err => {
-            console.error('更新Agent出错:', err);
-          });
-      } else {
-        // 添加新Agent
-        dispatch(createAgentConfig(agentData))
-          .unwrap()
-          .then(() => {
-            message.success('Agent已添加');
-            onSuccess();
-          })
-          .catch(err => {
-            console.error('添加Agent出错:', err);
-          });
-      }
+      // 添加新Agent
+      dispatch(createAgentConfig(agentData))
+        .unwrap()
+        .then((response) => {
+          message.success('Agent已添加');
+          // 调用onSuccess回调，确保刷新列表
+          onSuccess();
+          fetchAgents();
+          // 关闭模态框
+          onCancel();
+        })
+        .catch(err => {
+          console.error('添加Agent出错:', err);
+          message.error(err.message || '添加失败');
+        })
+        .finally(() => {
+          // 无论成功失败，都关闭loading状态
+          setLoading(false);
+          onCancel();
+        });
     });
   };
 
@@ -89,6 +97,7 @@ const AgentForm = ({ visible, agent, onCancel, onSuccess }) => {
       open={visible}
       onCancel={onCancel}
       onOk={handleSubmit}
+      confirmLoading={loading}
       destroyOnClose
       width={600}
     >
@@ -100,6 +109,8 @@ const AgentForm = ({ visible, agent, onCancel, onSuccess }) => {
         >
           <Input placeholder="请输入Agent名称" />
         </Form.Item>
+        
+        {/* 其他表单项保持不变 */}
         <Form.Item
           name="name_zh"
           label="中文名称"
@@ -160,39 +171,6 @@ const AgentForm = ({ visible, agent, onCancel, onSuccess }) => {
               </Option>
             ))}
           </Select>
-        </Form.Item>
-        <Form.Item
-          name="type"
-          label="类型"
-          initialValue="assistant"
-          rules={[{ required: true, message: '请选择Agent类型' }]}
-        >
-          <Select placeholder="请选择Agent类型">
-            <Option value="assistant">助手</Option>
-            <Option value="customer_service">客户服务</Option>
-            <Option value="data_analysis">数据分析</Option>
-            <Option value="content_creation">内容创作</Option>
-            <Option value="other">其他</Option>
-          </Select>
-        </Form.Item>
-        <Form.Item
-          name="avatar"
-          label="头像"
-          valuePropName="fileList" // Add this line
-          getValueFromEvent={e => {
-            if (Array.isArray(e)) {
-              return e;
-            }
-            return e?.fileList;
-          }} // Add this function to properly handle file uploads
-        >
-          <Upload
-            listType="picture"
-            maxCount={1}
-            beforeUpload={() => false}
-          >
-            <Button icon={<UploadOutlined />}>上传头像</Button>
-          </Upload>
         </Form.Item>
       </Form>
     </Modal>

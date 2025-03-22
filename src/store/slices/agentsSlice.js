@@ -135,7 +135,6 @@ const agentsSlice = createSlice({
         state.loading = false;
         state.error = action.payload?.message || '获取Agent列表失败';
       })
-      
       // 处理createAgentConfig
       .addCase(createAgentConfig.pending, (state) => {
         state.loading = true;
