@@ -1,12 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
 
 import authReducer from './slices/authSlice';
+import toolsReducer from './slices/toolsSlice';
 
-// 配置Redux store
 const store = configureStore({
   reducer: {
     auth: authReducer,
-    // 这里可以添加其他reducer
+    tools: toolsReducer,
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({

@@ -1,3 +1,4 @@
+// 在现有的 .eslintrc.js 文件中添加以下规则
 module.exports = {
   extends: [
     'react-app', // Use the existing CRA config
@@ -31,17 +32,8 @@ module.exports = {
     ],
     
     // Prettier rules
-    'prettier/prettier': [
-      'warn',
-      {
-        singleQuote: true,
-        semi: true,
-        tabWidth: 2,
-        trailingComma: 'es5',
-        printWidth: 100,
-        bracketSpacing: true,
-        arrowParens: 'avoid',
-      },
-    ],
+    'prettier/prettier': 'off', // 禁用所有 prettier 规则
+    // 或者只禁用逗号相关的规则
+    // 'prettier/prettier': ['error', { 'trailingComma': 'none' }]
   },
 };
