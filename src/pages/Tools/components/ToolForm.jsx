@@ -1,8 +1,8 @@
 import { Modal, Form, Input, Select, Switch, message } from 'antd';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { createTool, updateTool } from '../../../store/slices/toolsSlice';
+import { createTool, updateTool, fetchToolTypes } from '../../../store/slices/toolsSlice';
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -10,7 +10,17 @@ const { TextArea } = Input;
 const ToolForm = ({ visible, editingTool }) => {
   const [form] = Form.useForm();
   const dispatch = useDispatch();
-  const { loading } = useSelector(state => state.tools);
+  const { loading, toolTypes } = useSelector(state => state.tools);
+  
+  // 组件挂载时获取工具类型
+  useEffect(() => {
+    dispatch(fetchToolTypes())
+      .unwrap()
+      .catch(err => {
+        console.error('获取工具类型出错:', err);
+        message.error('获取工具类型失败');
+      });
+  }, [dispatch]);
   
   React.useEffect(() => {
     if (editingTool) {
@@ -87,7 +97,7 @@ const ToolForm = ({ visible, editingTool }) => {
   return (
     <Modal
       title={editingTool ? '编辑工具' : '添加工具'}
-      visible={visible}
+      open={visible}
       onCancel={handleCancel}
       onOk={handleSubmit}
       destroyOnClose
@@ -108,9 +118,9 @@ const ToolForm = ({ visible, editingTool }) => {
           rules={[{ required: true, message: '请选择工具类型' }]}
         >
           <Select placeholder="请选择工具类型">
-            <Option value="api">API接口</Option>
-            <Option value="function">函数</Option>
-            <Option value="plugin">插件</Option>
+            {Object.entries(toolTypes).map(([key, value]) => (
+              <Option key={key} value={key}>{value}</Option>
+            ))}
           </Select>
         </Form.Item>
         <Form.Item

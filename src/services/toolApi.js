@@ -26,6 +26,19 @@ const toolApi = {
   
   // 删除工具
   deleteTool: (id) => del(`/api/tools/${id}`),
+  // 获取工具类型
+  getToolTypes: async () => {
+    try {
+      const response = await get('/api/tools/types');
+      return response;
+    } catch (error) {
+      console.error('获取工具类型失败:', error);
+      throw error;
+    }
+  }
 };
 
+
+// 将新方法添加到导出对象中
 export default toolApi;
+

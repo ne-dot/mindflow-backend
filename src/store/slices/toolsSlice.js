@@ -78,13 +78,32 @@ export const deleteTool = createAsyncThunk(
 );
 
 // 创建工具slice
+// 添加获取工具类型的异步 action
+export const fetchToolTypes = createAsyncThunk(
+  'tools/fetchToolTypes',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await toolApi.getToolTypes();
+      if (response.success) {
+        return response.data;
+      } else {
+        return rejectWithValue(response.message || '获取工具类型失败');
+      }
+    } catch (error) {
+      return rejectWithValue(error.message || '获取工具类型失败');
+    }
+  }
+);
+
+// 在 initialState 中添加 toolTypes 字段
 const toolsSlice = createSlice({
   name: 'tools',
   initialState: {
     tools: [],
+    toolTypes: {},
     pagination: {
-      current: 1,
-      pageSize: 10,
+      page: 1,
+      page_size: 10,
       total: 0
     },
     loading: false,
@@ -153,6 +172,18 @@ const toolsSlice = createSlice({
         state.tools = state.tools.filter(tool => tool.id !== action.payload);
       })
       .addCase(deleteTool.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchToolTypes.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchToolTypes.fulfilled, (state, action) => {
+        state.loading = false;
+        state.toolTypes = action.payload;
+      })
+      .addCase(fetchToolTypes.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
