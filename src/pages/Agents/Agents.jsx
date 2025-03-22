@@ -4,8 +4,10 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { fetchAgents } from '../store/slices/agentsSlice';
-import AgentTable from './Agents/components/AgentTable';
-import AgentForm from './Agents/components/AgentForm';
+
+import AgentForm from './components/AgentForm';
+import AgentTable from './components/AgentTable';
+
 
 const { Title } = Typography;
 

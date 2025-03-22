@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
-import { getAgents, createAgent, updateAgent, deleteAgent } from '../../services/agent';
+import { getAgents, createAgent, updateAgent, deleteAgent, getVisibilityOptions, getStatusOptions } from '../../services/agent';
 
 // 异步Action: 获取Agent列表
 export const fetchAgents = createAsyncThunk(
@@ -61,10 +61,47 @@ export const deleteAgentConfig = createAsyncThunk(
   }
 );
 
+// 添加获取可见性选项的异步 action
+export const fetchVisibilityOptions = createAsyncThunk(
+  'agents/fetchVisibilityOptions',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await getVisibilityOptions();
+      if (response.success) {
+        return response.data.options;
+      } else {
+        return rejectWithValue(response.message || '获取可见性选项失败');
+      }
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+
+// 添加获取状态选项的异步 action
+export const fetchStatusOptions = createAsyncThunk(
+  'agents/fetchStatusOptions',
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await getStatusOptions();
+      if (response.success) {
+        return response.data.options;
+      } else {
+        return rejectWithValue(response.message || '获取状态选项失败');
+      }
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
 const initialState = {
   agents: [],
   loading: false,
   error: null,
+  visibilityOptions: [],
+  statusOptions: [],
   pagination: {
     page: 1,
     page_size: 10,
@@ -136,8 +173,46 @@ const agentsSlice = createSlice({
       .addCase(deleteAgentConfig.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload?.message || '删除Agent失败';
-      });
+      })
+      .addCase(fetchVisibilityOptions.fulfilled, (state, action) => {
+        state.visibilityOptions = action.payload;
+      })
+      .addCase(fetchStatusOptions.fulfilled, (state, action) => {
+        state.statusOptions = action.payload;
+      })
   }
 });
 
+
 export default agentsSlice.reducer;
+
+
+// 根据可见性值获取显示文本和颜色
+export const getVisibilityDisplay = (visibility) => {
+  switch(visibility) {
+    case 'public':
+      return { text: '公开', color: 'green' };
+    case 'private':
+      return { text: '私有', color: 'red' };
+    case 'organization':
+      return { text: '组织', color: 'blue' };
+    default:
+      return { text: visibility, color: 'default' };
+  }
+};
+
+// 根据状态值获取显示文本和颜色
+export const getStatusDisplay = (status) => {
+  switch(status) {
+    case 'published':
+      return { text: '已发布', color: 'green' };
+    case 'draft':
+      return { text: '草稿', color: 'orange' };
+    case 'archived':
+      return { text: '已归档', color: 'gray' };
+    case 'inactive':
+      return { text: '禁用', color: 'red' };
+    default:
+      return { text: status, color: 'default' };
+  }
+};

@@ -18,7 +18,6 @@ const useModelsHook = () => {
 
   // 定义表格列
   const columns = [
-    { title: 'ID', dataIndex: 'id', key: 'id', ellipsis: true },
     { title: '名称', dataIndex: 'model_name', key: 'model_name' },
     { title: '权重', dataIndex: 'weight', key: 'weight' },
     { title: '优先级', dataIndex: 'priority', key: 'priority' },

@@ -17,3 +17,13 @@ export const updateAgent = async (id, data) => {
 export const deleteAgent = async (id) => {
   return del(`/api/agents/${id}`);
 };
+
+// 添加获取可见性选项的函数
+export const getVisibilityOptions = async () => {
+  return get('/api/agents/visibility/options');
+};
+
+// 添加获取状态选项的函数
+export const getStatusOptions = async () => {
+  return get('/api/agents/status/options');
+};
