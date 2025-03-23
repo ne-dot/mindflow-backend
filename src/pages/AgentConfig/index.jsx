@@ -5,10 +5,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 
 import { fetchAgentById, updateAgentConfig } from '../../store/slices/agentsSlice';
+
+import AgentTester from './components/AgentTester';
+import ModelSelector from './components/ModelSelector';
 import PromptEditor from './components/PromptEditor';
 import ToolSelector from './components/ToolSelector';
-import ModelSelector from './components/ModelSelector';
-import AgentTester from './components/AgentTester';
 
 const { Header, Content, Sider } = Layout;
 

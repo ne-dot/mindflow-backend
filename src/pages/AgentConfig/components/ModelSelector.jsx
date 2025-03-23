@@ -1,9 +1,20 @@
-import React from 'react';
 import { Card, Form, Select, InputNumber } from 'antd';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+
+import { fetchModelConfigs } from '../../../store/slices/modelsSlice';
 
 const { Option } = Select;
 
 const ModelSelector = ({ form }) => {
+  const dispatch = useDispatch();
+  const { models, loading } = useSelector(state => state.models);
+
+  // 组件挂载时获取模型列表
+  useEffect(() => {
+    dispatch(fetchModelConfigs());
+  }, [dispatch]);
+
   return (
     <Card title="模型配置" style={{ marginBottom: 16 }}>
       <Form form={form} layout="vertical">
@@ -14,12 +25,15 @@ const ModelSelector = ({ form }) => {
           rules={[{ required: true, message: '请选择模型' }]}
           initialValue="gpt-4"
         >
-          <Select placeholder="请选择模型">
-            <Option value="gpt-4">GPT-4</Option>
-            <Option value="gpt-4-turbo">GPT-4 Turbo</Option>
-            <Option value="gpt-3.5-turbo">GPT-3.5 Turbo</Option>
-            <Option value="claude-3-opus">Claude 3 Opus</Option>
-            <Option value="claude-3-sonnet">Claude 3 Sonnet</Option>
+          <Select 
+            placeholder="请选择模型"
+            loading={loading}
+          >
+            {models.map(model => (
+              <Option key={model.id} value={model.id}>
+                {model.model_name}
+              </Option>
+            ))}
           </Select>
         </Form.Item>
         

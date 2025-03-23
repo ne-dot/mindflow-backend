@@ -1,21 +1,19 @@
-import React, { useState } from 'react';
-import { Card, Form, Button, Modal, List, Avatar, Tag } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Card, Form, Button, Modal, List, Tag } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 
-// 模拟工具列表数据
-const availableTools = [
-  { id: 'web_search', name: '网页搜索', icon: '🔍', description: '搜索互联网获取信息' },
-  { id: 'calculator', name: '计算器', icon: '🧮', description: '执行数学计算' },
-  { id: 'weather', name: '天气查询', icon: '🌤️', description: '获取天气预报信息' },
-  { id: 'code_interpreter', name: '代码解释器', icon: '💻', description: '执行和解释代码' },
-  { id: 'image_generator', name: '图像生成', icon: '🖼️', description: '生成图像' },
-  { id: 'file_reader', name: '文件读取', icon: '📄', description: '读取和分析文件内容' },
-  { id: 'database', name: '数据库查询', icon: '🗃️', description: '执行数据库查询操作' },
-  { id: 'translator', name: '翻译工具', icon: '🌐', description: '翻译不同语言的文本' },
-];
+import { fetchTools } from '../../../store/slices/toolsSlice';
 
 const ToolSelector = ({ form, selectedTools, setSelectedTools }) => {
+  const dispatch = useDispatch();
+  const { tools, loading } = useSelector(state => state.tools);
   const [isToolModalVisible, setIsToolModalVisible] = useState(false);
+
+  // 组件挂载时获取工具列表
+  useEffect(() => {
+    dispatch(fetchTools());
+  }, [dispatch]);
 
   // 打开工具选择弹窗
   const showToolModal = () => {
@@ -77,6 +75,7 @@ const ToolSelector = ({ form, selectedTools, setSelectedTools }) => {
             {selectedTools.length > 0 ? (
               <List
                 bordered
+                loading={loading}
                 dataSource={selectedTools}
                 renderItem={tool => (
                   <List.Item
@@ -90,7 +89,6 @@ const ToolSelector = ({ form, selectedTools, setSelectedTools }) => {
                     ]}
                   >
                     <List.Item.Meta
-                      avatar={<Avatar>{tool.icon}</Avatar>}
                       title={tool.name}
                       description={tool.description}
                     />
@@ -117,7 +115,8 @@ const ToolSelector = ({ form, selectedTools, setSelectedTools }) => {
       >
         <List
           itemLayout="horizontal"
-          dataSource={availableTools}
+          loading={loading}
+          dataSource={tools}
           renderItem={tool => {
             const isSelected = selectedTools.some(t => t.id === tool.id);
             return (
@@ -133,7 +132,6 @@ const ToolSelector = ({ form, selectedTools, setSelectedTools }) => {
                 }}
               >
                 <List.Item.Meta
-                  avatar={<Avatar size="large">{tool.icon}</Avatar>}
                   title={<span>{tool.name} {isSelected && <Tag color="blue">已选择</Tag>}</span>}
                   description={tool.description}
                 />

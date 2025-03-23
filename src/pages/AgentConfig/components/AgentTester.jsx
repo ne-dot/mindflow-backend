@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Card, Input, Button, List, Avatar, Typography } from 'antd';
 import { SendOutlined } from '@ant-design/icons';
+import { Card, Input, Button, List, Typography } from 'antd';
+import React, { useState } from 'react';
 
 const { TextArea } = Input;
 const { Text } = Typography;

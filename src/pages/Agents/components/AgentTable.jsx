@@ -11,6 +11,7 @@ import {
   getVisibilityDisplay,
   getStatusDisplay
 } from '../../../store/slices/agentsSlice';
+
 import AgentForm from './AgentForm';
 
 const AgentTable = ({ agents, pagination, onEdit, onChange }) => {
