@@ -1,13 +1,15 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+
 import MainLayout from './layouts/MainLayout';
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import Users from './pages/Users';
+import AgentConfig from './pages/AgentConfig';
 import Agents from './pages/Agents';
-import Tools from './pages/Tools';
+import Dashboard from './pages/Dashboard';
+import Login from './pages/Login';
 import Models from './pages/Models';
 import Prompts from './pages/Prompts';
+import Tools from './pages/Tools';
+import Users from './pages/Users';
 import './App.css';
 
 // 简单的身份验证检查
@@ -43,6 +45,15 @@ function App() {
           <PrivateRoute>
             <MainLayout>
               <Agents />
+            </MainLayout>
+          </PrivateRoute>
+        } />
+        
+        {/* 添加 AgentConfig 路由 */}
+        <Route path="/agents/config/:id" element={
+          <PrivateRoute>
+            <MainLayout>
+              <AgentConfig />
             </MainLayout>
           </PrivateRoute>
         } />

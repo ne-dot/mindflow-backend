@@ -1,7 +1,8 @@
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
+import { EditOutlined, DeleteOutlined, SettingOutlined } from '@ant-design/icons';
 import { Table, Button, Space, Modal, message, Tag } from 'antd';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
 import { 
   deleteAgentConfig, 
@@ -10,10 +11,14 @@ import {
   getVisibilityDisplay,
   getStatusDisplay
 } from '../../../store/slices/agentsSlice';
+import AgentForm from './AgentForm';
 
 const AgentTable = ({ agents, pagination, onEdit, onChange }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { visibilityOptions, statusOptions } = useSelector(state => state.agents);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [currentAgent, setCurrentAgent] = useState(null);
 
   // 组件挂载时获取可见性选项和状态选项
   useEffect(() => {
@@ -29,6 +34,11 @@ const AgentTable = ({ agents, pagination, onEdit, onChange }) => {
         console.error('获取状态选项出错:', err);
       });
   }, [dispatch]);
+
+  // 处理配置按钮点击，跳转到配置页面
+  const handleConfigClick = (agent) => {
+    navigate(`/agents/config/${agent.key_id}`, { state: { agent } });
+  };
 
   const handleDelete = (agentId) => {
     Modal.confirm({
@@ -52,6 +62,29 @@ const AgentTable = ({ agents, pagination, onEdit, onChange }) => {
     });
   };
 
+  // 处理编辑按钮点击
+  const handleEditClick = (agent) => {
+    setCurrentAgent(agent);
+    setIsEditModalVisible(true);
+  };
+
+  // 处理编辑表单取消
+  const handleEditCancel = () => {
+    setIsEditModalVisible(false);
+    setCurrentAgent(null);
+  };
+
+  // 处理编辑表单成功提交
+  const handleEditSuccess = () => {
+    setIsEditModalVisible(false);
+    setCurrentAgent(null);
+    // 刷新列表
+    onChange({
+      current: pagination.page,
+      pageSize: pagination.page_size
+    });
+  };
+
   const columns = [
     { 
       title: '中文名/英文名', 
@@ -69,6 +102,7 @@ const AgentTable = ({ agents, pagination, onEdit, onChange }) => {
       title: '可见性', 
       dataIndex: 'visibility', 
       key: 'visibility',
+      width: 100,
       render: visibility => {
         const { text, color } = getVisibilityDisplay(visibility);
         return <Tag color={color}>{text}</Tag>;
@@ -83,6 +117,7 @@ const AgentTable = ({ agents, pagination, onEdit, onChange }) => {
       title: '状态', 
       dataIndex: 'status', 
       key: 'status',
+      width: 80,
       render: status => {
         const { text, color } = getStatusDisplay(status);
         return <Tag color={color}>{text}</Tag>;
@@ -103,15 +138,23 @@ const AgentTable = ({ agents, pagination, onEdit, onChange }) => {
     {
       title: '操作',
       key: 'action',
+      width: 260, // 增加列宽
       render: (_, record) => (
         <Space size="middle">
           <Button 
             type="primary" 
             icon={<EditOutlined />} 
             size="small"
-            onClick={() => onEdit(record)}
+            onClick={() => handleEditClick(record)}
           >
             编辑
+          </Button>
+          <Button 
+            icon={<SettingOutlined />} 
+            size="small"
+            onClick={() => handleConfigClick(record)}
+          >
+            配置
           </Button>
           <Button 
             danger 
@@ -127,20 +170,30 @@ const AgentTable = ({ agents, pagination, onEdit, onChange }) => {
   ];
 
   return (
-    <Table 
-      dataSource={agents} 
-      columns={columns} 
-      rowKey="key_id"
-      pagination={{
-        current: pagination.page,
-        pageSize: pagination.page_size,
-        total: pagination.total,
-        showSizeChanger: true,
-        showQuickJumper: true,
-        showTotal: total => `共 ${total} 条`
-      }}
-      onChange={onChange}
-    />
+    <>
+      <Table 
+        dataSource={agents} 
+        columns={columns} 
+        rowKey="key_id"
+        pagination={{
+          current: pagination.page,
+          pageSize: pagination.page_size,
+          total: pagination.total,
+          showSizeChanger: true,
+          showQuickJumper: true,
+          showTotal: total => `共 ${total} 条`
+        }}
+        onChange={onChange}
+      />
+      
+      {/* 编辑Agent的表单 */}
+      <AgentForm
+        visible={isEditModalVisible}
+        agent={currentAgent}
+        onCancel={handleEditCancel}
+        onSuccess={handleEditSuccess}
+      />
+    </>
   );
 };
 

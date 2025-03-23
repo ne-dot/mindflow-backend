@@ -96,6 +96,40 @@ export const fetchStatusOptions = createAsyncThunk(
   }
 );
 
+// 获取单个Agent详情
+export const fetchAgentById = createAsyncThunk(
+  'agents/fetchAgentById',
+  async (id, { rejectWithValue }) => {
+    try {
+      // 这里将来会实现真正的API调用
+      // const response = await agentService.getAgentById(id);
+      // return response;
+      
+      // 临时返回mock数据
+      return {
+        success: true,
+        message: "操作成功",
+        data: {
+          key_id: id,
+          name: "测试Agent",
+          name_zh: "测试Agent中文名",
+          name_en: "Test Agent",
+          description: "这是一个测试用的Agent描述",
+          pricing: 9.99,
+          visibility: "public",
+          status: "published",
+          type: "assistant",
+          prompt: "你是一个有用的AI助手，请帮助用户解决问题。",
+          create_date: Math.floor(Date.now() / 1000),
+          update_date: Math.floor(Date.now() / 1000)
+        }
+      };
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
 const initialState = {
   agents: [],
   loading: false,
@@ -179,6 +213,19 @@ const agentsSlice = createSlice({
       .addCase(fetchStatusOptions.fulfilled, (state, action) => {
         state.statusOptions = action.payload;
       })
+       // 获取单个Agent详情
+      .addCase(fetchAgentById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAgentById.fulfilled, (state, action) => {
+        state.loading = false;
+        // 不需要在全局状态中存储单个Agent详情
+      })
+      .addCase(fetchAgentById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || '获取Agent详情失败';
+      });
   }
 });
 

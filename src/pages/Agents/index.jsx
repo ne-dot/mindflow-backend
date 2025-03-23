@@ -2,17 +2,18 @@ import { PlusOutlined } from '@ant-design/icons';
 import { Button, Typography, message, Spin } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
 import { fetchAgents } from '../../store/slices/agentsSlice';
 
 import AgentForm from './components/AgentForm';
 import AgentTable from './components/AgentTable';
 
-
 const { Title } = Typography;
 
 const Agents = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { agents, loading, pagination, error } = useSelector(state => state.agents || {
     agents: [],
     loading: false,
@@ -45,9 +46,14 @@ const Agents = () => {
     }
   }, [error]);
 
-  const showModal = (agent = null) => {
-    setEditingAgent(agent);
+  // 显示创建Agent的模态框
+  const showModal = () => {
     setIsModalVisible(true);
+  };
+
+  // 处理编辑Agent，跳转到编辑页面
+  const handleEdit = (agent) => {
+    navigate(`/agents/config/${agent.key_id}`, { state: { agent } });
   };
 
   const handleCancel = () => {
@@ -67,7 +73,6 @@ const Agents = () => {
 
   // 处理表格分页变化
   const handleTableChange = (pagination) => {
-    console.log('handleTableChange', pagination);
     dispatch(fetchAgents({
       page: pagination.current,
       page_size: pagination.pageSize
@@ -78,7 +83,7 @@ const Agents = () => {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
         <Title level={2}>Agent管理</Title>
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => showModal()}>
+        <Button type="primary" icon={<PlusOutlined />} onClick={showModal}>
           添加Agent
         </Button>
       </div>
@@ -87,14 +92,14 @@ const Agents = () => {
         <AgentTable 
           agents={agents}
           pagination={pagination}
-          onEdit={showModal}
+          onEdit={handleEdit}
           onChange={handleTableChange}
         />
       </Spin>
       
       <AgentForm
         visible={isModalVisible}
-        agent={editingAgent}
+        agent={null}
         onCancel={handleCancel}
         onSuccess={handleSuccess}
       />
