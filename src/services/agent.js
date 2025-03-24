@@ -51,3 +51,8 @@ export const getAgentModel = async (agentId) => {
  export const triggerAgent = async (agentId, query) => {
   return post(`api/agents/${agentId}/trigger`, { query });
 };
+
+// 配置Agent
+export const configureAgent = async (agentId, configData) => {
+  return post(`/api/agents/${agentId}/config`, configData);
+};

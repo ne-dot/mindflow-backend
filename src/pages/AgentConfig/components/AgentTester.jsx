@@ -40,6 +40,85 @@ const NewsCard = ({ newsItem }) => (
   </Card>
 );
 
+// 渲染Google搜索结果组件
+const GoogleSearchResults = ({ searchResults }) => {
+  if (!searchResults) return null;
+  
+  const { query, text_results, image_results } = searchResults;
+  
+  return (
+    <div style={{ marginBottom: 16 }}>
+      <Title level={5}>搜索查询: {query}</Title>
+      
+      {/* 文本搜索结果 */}
+      {text_results && text_results.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <Text strong style={{ display: 'block', marginBottom: 8 }}>文本结果:</Text>
+          <List
+            itemLayout="vertical"
+            dataSource={text_results}
+            renderItem={item => (
+              <List.Item style={{ padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>
+                <div>
+                  <a 
+                    href={item.link} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    style={{ color: '#1890ff', fontSize: '16px', fontWeight: 500 }}
+                  >
+                    {item.title}
+                  </a>
+                  <div style={{ fontSize: '14px', color: '#006621', margin: '4px 0' }}>
+                    {item.link}
+                  </div>
+                  <Paragraph style={{ margin: '4px 0' }}>
+                    {item.snippet}
+                  </Paragraph>
+                  <Text type="secondary" style={{ fontSize: '12px' }}>
+                    来源: {item.source}
+                  </Text>
+                </div>
+              </List.Item>
+            )}
+          />
+        </div>
+      )}
+      
+      {/* 图片搜索结果 */}
+      {image_results && image_results.length > 0 && (
+        <div>
+          <Text strong style={{ display: 'block', marginBottom: 8 }}>图片结果:</Text>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+            {image_results.map((item, index) => (
+              <Card
+                key={index}
+                hoverable
+                style={{ width: 200 }}
+                cover={
+                  <img 
+                    alt={item.title}
+                    src={item.link}
+                    style={{ height: 150, objectFit: 'cover' }}
+                  />
+                }
+              >
+                <Card.Meta
+                  title={
+                    <a href={item.contextLink} target="_blank" rel="noopener noreferrer">
+                      {item.title.length > 40 ? `${item.title.substring(0, 40)}...` : item.title}
+                    </a>
+                  }
+                  description={item.source}
+                />
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // 渲染工具结果组件
 const ToolResults = ({ toolResults }) => {
   if (!toolResults) return null;
@@ -59,6 +138,11 @@ const ToolResults = ({ toolResults }) => {
                 <NewsCard key={index} newsItem={newsItem} />
               ))}
             </div>
+          )}
+          
+          {/* Google搜索结果 */}
+          {toolName === 'google_search' && (
+            <GoogleSearchResults searchResults={result} />
           )}
           
           {/* 其他类型的工具结果可以在这里添加 */}

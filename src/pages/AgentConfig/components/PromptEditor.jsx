@@ -1,6 +1,6 @@
 import { Card, Form, Input, Tabs, Spin } from 'antd';
 import React, { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
 
 import { fetchAgentPrompts } from '../../../store/slices/promptsSlice';
@@ -12,6 +12,8 @@ const PromptEditor = ({ form }) => {
   const dispatch = useDispatch();
   const [activeKey, setActiveKey] = useState('zh');
   const [loading, setLoading] = useState(false);
+  // 直接从Redux store获取prompts数据
+  const { prompts } = useSelector(state => state.prompts);
   
   // 获取Agent的prompts数据
   useEffect(() => {
@@ -19,22 +21,24 @@ const PromptEditor = ({ form }) => {
       setLoading(true);
       dispatch(fetchAgentPrompts(id))
         .unwrap()
-        .then(prompts => {
-          if (prompts && prompts.length > 0) {
-            const prompt = prompts[0]; // 获取第一个prompt
-            
-            // 更新表单中的prompt字段
-            form.setFieldsValue({
-              prompt_zh: prompt.content_zh,
-              prompt_en: prompt.content_en
-            });
-          }
-        })
         .finally(() => {
           setLoading(false);
         });
     }
-  }, [id, form, dispatch]);
+  }, [id, dispatch]);
+
+  // 当prompts数据更新时，更新表单
+  useEffect(() => {
+    if (prompts && prompts.length > 0) {
+      const prompt = prompts[0]; // 获取第一个prompt
+      
+      // 更新表单中的prompt字段
+      form.setFieldsValue({
+        prompt_zh: prompt.content_zh,
+        prompt_en: prompt.content_en
+      });
+    }
+  }, [prompts, form]);
 
   const handleTabChange = (key) => {
     setActiveKey(key);
@@ -46,51 +50,54 @@ const PromptEditor = ({ form }) => {
       key: 'zh',
       label: '中文Prompt',
       children: (
-        <Form form={form} layout="vertical">
-          <Form.Item
-            name="prompt_zh"
-            rules={[{ required: true, message: '请输入中文Prompt' }]}
-          >
-            {loading ? (
-              <div style={{ textAlign: 'center', padding: '40px 0' }}>
-                <Spin tip="加载Prompt中..." />
-              </div>
-            ) : (
-              <TextArea rows={20} placeholder="请输入Agent的中文Prompt" />
-            )}
-          </Form.Item>
-        </Form>
+        <Form.Item
+          name="prompt_zh"
+          rules={[{ required: true, message: '请输入中文Prompt' }]}
+        >
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '40px 0' }}>
+              <Spin tip="加载Prompt中..." />
+            </div>
+          ) : (
+            <TextArea rows={20} placeholder="请输入Agent的中文Prompt" />
+          )}
+        </Form.Item>
       )
     },
     {
       key: 'en',
       label: '英文Prompt',
       children: (
-        <Form form={form} layout="vertical">
-          <Form.Item
-            name="prompt_en"
-            rules={[{ required: true, message: '请输入英文Prompt' }]}
-          >
-            {loading ? (
-              <div style={{ textAlign: 'center', padding: '40px 0' }}>
-                <Spin tip="加载Prompt中..." />
-              </div>
-            ) : (
-              <TextArea rows={20} placeholder="请输入Agent的英文Prompt" />
-            )}
-          </Form.Item>
-        </Form>
+        <Form.Item
+          name="prompt_en"
+          rules={[{ required: true, message: '请输入英文Prompt' }]}
+        >
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '40px 0' }}>
+              <Spin tip="加载Prompt中..." />
+            </div>
+          ) : (
+            <TextArea rows={20} placeholder="请输入Agent的英文Prompt" />
+          )}
+        </Form.Item>
       )
     }
   ];
 
   return (
     <Card title="Prompts编辑">
-      <Tabs 
-        activeKey={activeKey} 
-        onChange={handleTabChange} 
-        items={tabItems}
-      />
+      <Form form={form} layout="vertical">
+        {/* 添加隐藏的表单项，确保prompt_en始终存在 */}
+        <Form.Item name="prompt_en" hidden={true}>
+          <Input />
+        </Form.Item>
+        
+        <Tabs 
+          activeKey={activeKey} 
+          onChange={handleTabChange} 
+          items={tabItems}
+        />
+      </Form>
     </Card>
   );
 };

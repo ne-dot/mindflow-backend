@@ -1,7 +1,8 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
 import { getAgents, createAgent, updateAgent, getAgentTools, 
-  deleteAgent, getVisibilityOptions, getStatusOptions, getAgentModel, triggerAgent, getAgentById } from '../../services/agent';
+  deleteAgent, getVisibilityOptions, getStatusOptions, getAgentModel, 
+  triggerAgent, getAgentById, configureAgent } from '../../services/agent';
 
 // 异步Action: 获取Agent列表
 export const fetchAgents = createAsyncThunk(
@@ -166,6 +167,23 @@ export const triggerAgentAction = createAsyncThunk(
   }
 );
 
+// 配置Agent
+export const configureAgentAction = createAsyncThunk(
+  'agents/configureAgent',
+  async ({ agentId, configData }, { rejectWithValue }) => {
+    try {
+      const response = await configureAgent(agentId, configData);
+      if (response.success) {
+        return response.data;
+      } else {
+        return rejectWithValue(response.message || '配置Agent失败');
+      }
+    } catch (error) {
+      return rejectWithValue(error.message || '配置Agent失败');
+    }
+  }
+);
+
 const initialState = {
   agents: [],
   agent: null,
@@ -191,9 +209,6 @@ const agentsSlice = createSlice({
   name: 'agents',
   initialState,
   reducers: {
-    // ... 现有 reducers ...
-    
-    // 可以添加一个清除响应的 action
     clearAgentResponse: (state) => {
       state.agentResponse = null;
     }
@@ -300,20 +315,30 @@ const agentsSlice = createSlice({
         state.loadingModel = false;
         state.error = action.payload;
       })
-      // 处理 triggerAgentAction
-      builder
-        .addCase(triggerAgentAction.pending, (state) => {
-          state.triggeringAgent = true;
-          state.error = null;
-        })
-        .addCase(triggerAgentAction.fulfilled, (state, action) => {
-          state.triggeringAgent = false;
-          state.agentResponse = action.payload; // 存储响应数据
-        })
-        .addCase(triggerAgentAction.rejected, (state, action) => {
-          state.triggeringAgent = false;
-          state.error = action.payload || '触发Agent失败';
-        });
+      .addCase(triggerAgentAction.pending, (state) => {
+        state.triggeringAgent = true;
+        state.error = null;
+      })
+      .addCase(triggerAgentAction.fulfilled, (state, action) => {
+        state.triggeringAgent = false;
+        state.agentResponse = action.payload; // 存储响应数据
+      })
+      .addCase(triggerAgentAction.rejected, (state, action) => {
+        state.triggeringAgent = false;
+        state.error = action.payload || '触发Agent失败';
+      })
+      .addCase(configureAgentAction.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(configureAgentAction.fulfilled, (state, action) => {
+        state.loading = false;
+        // 可以在这里更新agent状态，如果需要的话
+      })
+      .addCase(configureAgentAction.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || '配置Agent失败';
+      });
   }
 });
 
