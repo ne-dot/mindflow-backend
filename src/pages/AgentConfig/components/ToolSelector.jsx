@@ -2,18 +2,35 @@ import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 import { Card, Form, Button, Modal, List, Tag } from 'antd';
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
 
+import { fetchAgentTools } from '../../../store/slices/agentsSlice';
 import { fetchTools } from '../../../store/slices/toolsSlice';
 
 const ToolSelector = ({ form, selectedTools, setSelectedTools }) => {
+  const { id } = useParams();
   const dispatch = useDispatch();
   const { tools, loading } = useSelector(state => state.tools);
   const [isToolModalVisible, setIsToolModalVisible] = useState(false);
 
-  // 组件挂载时获取工具列表
+  // 组件挂载时获取工具列表和Agent的工具列表
   useEffect(() => {
     dispatch(fetchTools());
-  }, [dispatch]);
+    
+    if (id) {
+      dispatch(fetchAgentTools(id))
+        .unwrap()
+        .then(tools => {
+          if (tools && tools.length > 0) {
+            setSelectedTools(tools);
+            // 更新表单中的工具字段
+            form.setFieldsValue({
+              tools: tools.map(tool => tool.id)
+            });
+          }
+        });
+    }
+  }, [dispatch, id, form, setSelectedTools]);
 
   // 打开工具选择弹窗
   const showToolModal = () => {
@@ -111,7 +128,7 @@ const ToolSelector = ({ form, selectedTools, setSelectedTools }) => {
         onOk={handleToolModalOk}
         onCancel={handleToolModalCancel}
         width={700}
-        bodyStyle={{ maxHeight: '60vh', overflowY: 'auto' }}
+        styles={{ body: { maxHeight: '60vh', overflowY: 'auto' } }}
       >
         <List
           itemLayout="horizontal"

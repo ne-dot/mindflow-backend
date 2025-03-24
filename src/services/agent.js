@@ -31,3 +31,13 @@ export const getVisibilityOptions = async () => {
 export const getStatusOptions = async () => {
   return get('/api/agents/status/options');
 };
+
+// 获取 Agent 的工具列表
+export const  getAgentTools = async (agentId) => {
+  return get(`/api/agents/${agentId}/tools`);
+};
+
+// 获取Agent的模型配置
+export const getAgentModel = async (agentId) => {
+  return get(`/api/agents/${agentId}/models`);
+};

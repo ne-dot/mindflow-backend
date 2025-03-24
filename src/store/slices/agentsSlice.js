@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
-import { getAgents, createAgent, updateAgent, deleteAgent, getVisibilityOptions, getStatusOptions } from '../../services/agent';
+import { getAgents, createAgent, updateAgent, getAgentTools, 
+  deleteAgent, getVisibilityOptions, getStatusOptions, getAgentModel } from '../../services/agent';
 
 // 异步Action: 获取Agent列表
 export const fetchAgents = createAsyncThunk(
@@ -130,6 +131,41 @@ export const fetchAgentById = createAsyncThunk(
   }
 );
 
+// 添加获取 agent 工具的异步 action
+export const fetchAgentTools = createAsyncThunk(
+  'agents/fetchAgentTools',
+  async (agentId, { rejectWithValue }) => {
+    try {
+      const response = await getAgentTools(agentId);
+      if (response.success) {
+        return response.data.tools;
+      } else {
+        return rejectWithValue(response.message || '获取Agent工具列表失败');
+      }
+    } catch (error) {
+      return rejectWithValue(error.message || '获取Agent工具列表失败');
+    }
+  }
+);
+
+
+// 获取Agent的模型配置
+export const fetchAgentModel = createAsyncThunk(
+  'agents/fetchAgentModel',
+  async (agentId, { rejectWithValue }) => {
+    try {
+      const response = await getAgentModel(agentId);
+      if (response.success) {
+        return response.data.model;
+      } else {
+        return rejectWithValue(response.message || '获取Agent模型配置失败');
+      }
+    } catch (error) {
+      return rejectWithValue(error.message || '获取Agent模型配置失败');
+    }
+  }
+);
+
 const initialState = {
   agents: [],
   loading: false,
@@ -220,12 +256,36 @@ const agentsSlice = createSlice({
       })
       .addCase(fetchAgentById.fulfilled, (state, action) => {
         state.loading = false;
-        // 不需要在全局状态中存储单个Agent详情
       })
       .addCase(fetchAgentById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || '获取Agent详情失败';
+      })
+      .addCase(fetchAgentTools.pending, (state) => {
+        state.loadingTools = true;
+        state.error = null;
+      })
+      .addCase(fetchAgentTools.fulfilled, (state, action) => {
+        state.loadingTools = false;
+        state.agentTools = action.payload;
+      })
+      .addCase(fetchAgentTools.rejected, (state, action) => {
+        state.loadingTools = false;
+        state.error = action.payload;
+      })
+      .addCase(fetchAgentModel.pending, (state) => {
+        state.loadingModel = true;
+        state.error = null;
+      })
+      .addCase(fetchAgentModel.fulfilled, (state, action) => {
+        state.loadingModel = false;
+        state.agentModel = action.payload;
+      })
+      .addCase(fetchAgentModel.rejected, (state, action) => {
+        state.loadingModel = false;
+        state.error = action.payload;
       });
+
   }
 });
 

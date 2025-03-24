@@ -35,30 +35,45 @@ const PromptEditor = ({ form }) => {
     setActiveKey(key);
   };
 
+  // 定义Tabs的items配置
+  const tabItems = [
+    {
+      key: 'zh',
+      label: '中文Prompt',
+      children: (
+        <Form form={form} layout="vertical">
+          <Form.Item
+            name="prompt_zh"
+            rules={[{ required: true, message: '请输入中文Prompt' }]}
+          >
+            <TextArea rows={20} placeholder="请输入Agent的中文Prompt" />
+          </Form.Item>
+        </Form>
+      )
+    },
+    {
+      key: 'en',
+      label: '英文Prompt',
+      children: (
+        <Form form={form} layout="vertical">
+          <Form.Item
+            name="prompt_en"
+            rules={[{ required: true, message: '请输入英文Prompt' }]}
+          >
+            <TextArea rows={20} placeholder="请输入Agent的英文Prompt" />
+          </Form.Item>
+        </Form>
+      )
+    }
+  ];
+
   return (
     <Card title="Prompts编辑">
-      <Tabs activeKey={activeKey} onChange={handleTabChange}>
-        <Tabs.TabPane tab="中文Prompt" key="zh">
-          <Form form={form} layout="vertical">
-            <Form.Item
-              name="prompt_zh"
-              rules={[{ required: true, message: '请输入中文Prompt' }]}
-            >
-              <TextArea rows={20} placeholder="请输入Agent的中文Prompt" />
-            </Form.Item>
-          </Form>
-        </Tabs.TabPane>
-        <Tabs.TabPane tab="英文Prompt" key="en">
-          <Form form={form} layout="vertical">
-            <Form.Item
-              name="prompt_en"
-              rules={[{ required: true, message: '请输入英文Prompt' }]}
-            >
-              <TextArea rows={20} placeholder="请输入Agent的英文Prompt" />
-            </Form.Item>
-          </Form>
-        </Tabs.TabPane>
-      </Tabs>
+      <Tabs 
+        activeKey={activeKey} 
+        onChange={handleTabChange} 
+        items={tabItems}
+      />
     </Card>
   );
 };

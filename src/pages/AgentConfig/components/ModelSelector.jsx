@@ -1,19 +1,38 @@
 import { Card, Form, Select, InputNumber } from 'antd';
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
 
+import { fetchAgentModel } from '../../../store/slices/agentsSlice';
 import { fetchModelConfigs } from '../../../store/slices/modelsSlice';
 
 const { Option } = Select;
 
 const ModelSelector = ({ form }) => {
+  const { id } = useParams();
   const dispatch = useDispatch();
   const { models, loading } = useSelector(state => state.models);
 
-  // 组件挂载时获取模型列表
+  // 组件挂载时获取模型列表和Agent的模型配置
   useEffect(() => {
     dispatch(fetchModelConfigs());
-  }, [dispatch]);
+    
+    if (id) {
+      dispatch(fetchAgentModel(id))
+        .unwrap()
+        .then(modelData => {
+          if (modelData && modelData.id) {
+            // 更新表单中的模型字段
+            form.setFieldsValue({
+              model: modelData.id,
+              // 如果API返回了温度和最大输出长度，也可以设置这些值
+              // temperature: modelData.temperature,
+              // max_tokens: modelData.max_tokens
+            });
+          }
+        });
+    }
+  }, [dispatch, id, form]);
 
   return (
     <Card title="模型配置" style={{ marginBottom: 16 }}>
@@ -23,7 +42,6 @@ const ModelSelector = ({ form }) => {
           name="model"
           label="模型选择"
           rules={[{ required: true, message: '请选择模型' }]}
-          initialValue="gpt-4"
         >
           <Select 
             placeholder="请选择模型"

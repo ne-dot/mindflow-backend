@@ -50,7 +50,7 @@ const AgentTester = ({ agent }) => {
   };
 
   return (
-    <Card title="测试Agent" bordered={false} style={{ height: '100%' }}>
+    <Card title="测试Agent" style={{ height: '100%' }}>
       <div style={{ height: 'calc(100vh - 200px)', display: 'flex', flexDirection: 'column' }}>
         <div 
           style={{ 
