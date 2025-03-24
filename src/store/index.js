@@ -3,6 +3,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import agentsReducer from './slices/agentsSlice';
 import authReducer from './slices/authSlice';
 import modelsReducer from './slices/modelsSlice';
+import promptsReducer from './slices/promptsSlice';
 import toolsReducer from './slices/toolsSlice';
 
 const store = configureStore({
@@ -10,7 +11,8 @@ const store = configureStore({
     auth: authReducer,
     models: modelsReducer,
     tools: toolsReducer,
-    agents: agentsReducer
+    agents: agentsReducer,
+    prompts: promptsReducer,
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({
