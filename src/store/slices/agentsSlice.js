@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
 import { getAgents, createAgent, updateAgent, getAgentTools, 
-  deleteAgent, getVisibilityOptions, getStatusOptions, getAgentModel } from '../../services/agent';
+  deleteAgent, getVisibilityOptions, getStatusOptions, getAgentModel, triggerAgent } from '../../services/agent';
 
 // 异步Action: 获取Agent列表
 export const fetchAgents = createAsyncThunk(
@@ -166,9 +166,33 @@ export const fetchAgentModel = createAsyncThunk(
   }
 );
 
+// 触发Agent
+export const triggerAgentAction = createAsyncThunk(
+  'agents/triggerAgent',
+  async ({ agentId, query }, { rejectWithValue }) => {
+    try {
+      const response = await triggerAgent(agentId, query);
+      if (response.success) {
+        return response.data;
+      } else {
+        return rejectWithValue(response.message || '触发Agent失败');
+      }
+    } catch (error) {
+      return rejectWithValue(error.message || '触发Agent失败');
+    }
+  }
+);
+
 const initialState = {
   agents: [],
+  agent: null,
+  agentResponse: null,
+  agentTools: [], // Add this to ensure it's initialized as an empty array
+  agentModel: null,
   loading: false,
+  loadingTools: false,
+  loadingModel: false,
+  triggeringAgent: false,
   error: null,
   visibilityOptions: [],
   statusOptions: [],
@@ -183,7 +207,14 @@ const initialState = {
 const agentsSlice = createSlice({
   name: 'agents',
   initialState,
-  reducers: {},
+  reducers: {
+    // ... 现有 reducers ...
+    
+    // 可以添加一个清除响应的 action
+    clearAgentResponse: (state) => {
+      state.agentResponse = null;
+    }
+  },
   extraReducers: (builder) => {
     builder
       // 处理fetchAgents
@@ -284,11 +315,26 @@ const agentsSlice = createSlice({
       .addCase(fetchAgentModel.rejected, (state, action) => {
         state.loadingModel = false;
         state.error = action.payload;
-      });
-
+      })
+      // 处理 triggerAgentAction
+      builder
+        .addCase(triggerAgentAction.pending, (state) => {
+          state.triggeringAgent = true;
+          state.error = null;
+        })
+        .addCase(triggerAgentAction.fulfilled, (state, action) => {
+          state.triggeringAgent = false;
+          state.agentResponse = action.payload; // 存储响应数据
+        })
+        .addCase(triggerAgentAction.rejected, (state, action) => {
+          state.triggeringAgent = false;
+          state.error = action.payload || '触发Agent失败';
+        });
   }
 });
 
+// 导出清除响应的 action
+export const { clearAgentResponse } = agentsSlice.actions;
 
 export default agentsSlice.reducer;
 

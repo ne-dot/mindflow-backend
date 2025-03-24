@@ -1,14 +1,102 @@
 import { SendOutlined } from '@ant-design/icons';
-import { Card, Input, Button, List, Typography } from 'antd';
-import React, { useState } from 'react';
+import { Card, Input, Button, List, Typography, message, Tag } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useParams } from 'react-router-dom';
+
+import { triggerAgentAction } from '../../../store/slices/agentsSlice';
 
 const { TextArea } = Input;
-const { Text } = Typography;
+const { Text, Title, Paragraph } = Typography;
+
+// 渲染新闻卡片组件
+const NewsCard = ({ newsItem }) => (
+  <Card 
+    hoverable
+    style={{ marginBottom: 16 }}
+    cover={newsItem.image_url ? <img alt={newsItem.title} src={newsItem.image_url} /> : null}
+  >
+    <Card.Meta
+      title={<a href={newsItem.link} target="_blank" rel="noopener noreferrer">{newsItem.title}</a>}
+      description={
+        <>
+          <Paragraph ellipsis={{ rows: 2 }}>{newsItem.description}</Paragraph>
+          <div style={{ marginTop: 8 }}>
+            <Text type="secondary">
+              {new Date(newsItem.published_date).toLocaleDateString()} · {newsItem.source}
+            </Text>
+          </div>
+          <div style={{ marginTop: 8 }}>
+            {newsItem.categories?.map(category => (
+              <Tag key={category} color="blue">{category}</Tag>
+            ))}
+            {newsItem.keywords?.map(keyword => (
+              <Tag key={keyword}>{keyword.trim()}</Tag>
+            ))}
+          </div>
+        </>
+      }
+    />
+  </Card>
+);
+
+// 渲染工具结果组件
+const ToolResults = ({ toolResults }) => {
+  if (!toolResults) return null;
+  
+  return (
+    <div style={{ marginTop: 16, marginBottom: 16 }}>
+      {Object.entries(toolResults).map(([toolName, result]) => (
+        <div key={toolName}>
+          <Title level={5} style={{ marginBottom: 16 }}>
+            工具结果: {toolName}
+          </Title>
+          
+          {/* 新闻工具结果 */}
+          {result.news_items && (
+            <div>
+              {result.news_items.map((newsItem, index) => (
+                <NewsCard key={index} newsItem={newsItem} />
+              ))}
+            </div>
+          )}
+          
+          {/* 其他类型的工具结果可以在这里添加 */}
+        </div>
+      ))}
+    </div>
+  );
+};
 
 const AgentTester = ({ agent }) => {
+  const { id } = useParams();
+  const dispatch = useDispatch();
+  const { triggeringAgent, agentResponse, error } = useSelector(state => state.agents);
   const [inputMessage, setInputMessage] = useState('');
   const [messages, setMessages] = useState([]);
-  const [loading, setLoading] = useState(false);
+
+  // 监听 Redux 中的 agentResponse 变化
+  useEffect(() => {
+    if (agentResponse && agentResponse.ai_response) {
+      // 添加 Agent 响应到消息列表
+      const agentMessage = {
+        id: Date.now(),
+        role: 'assistant',
+        content: agentResponse.ai_response,
+        timestamp: new Date().toISOString(),
+        toolResults: agentResponse.tool_results
+      };
+      
+      setMessages(prev => [...prev.filter(msg => msg.role !== 'typing'), agentMessage]);
+    }
+  }, [agentResponse]);
+
+  // 监听错误信息
+  useEffect(() => {
+    if (error) {
+      message.error(`触发Agent失败: ${error}`);
+    }
+  }, [error]);
 
   // 发送测试消息
   const handleSendMessage = () => {
@@ -22,21 +110,21 @@ const AgentTester = ({ agent }) => {
       timestamp: new Date().toISOString()
     };
     
-    setMessages([...messages, userMessage]);
-    setLoading(true);
+    // 添加一个临时的"正在输入"消息
+    const typingMessage = {
+      id: Date.now() + 1,
+      role: 'typing',
+      content: '正在思考...',
+      timestamp: new Date().toISOString()
+    };
     
-    // 模拟Agent响应
-    setTimeout(() => {
-      const agentMessage = {
-        id: Date.now() + 1,
-        role: 'assistant',
-        content: `这是来自 ${agent?.name || 'Agent'} 的测试响应。实际开发中，这里应该调用后端API获取真实响应。`,
-        timestamp: new Date().toISOString()
-      };
-      
-      setMessages(prev => [...prev, agentMessage]);
-      setLoading(false);
-    }, 1000);
+    setMessages([...messages, userMessage, typingMessage]);
+    
+    // 使用 Redux action 触发 Agent
+    dispatch(triggerAgentAction({ 
+      agentId: id || agent?.id, 
+      query: inputMessage 
+    }));
     
     setInputMessage('');
   };
@@ -69,7 +157,9 @@ const AgentTester = ({ agent }) => {
               renderItem={message => (
                 <List.Item style={{ 
                   justifyContent: message.role === 'user' ? 'flex-end' : 'flex-start',
-                  padding: '8px 0'
+                  padding: '8px 0',
+                  flexDirection: 'column',
+                  alignItems: message.role === 'user' ? 'flex-end' : 'flex-start',
                 }}>
                   <div style={{
                     maxWidth: '80%',
@@ -88,6 +178,13 @@ const AgentTester = ({ agent }) => {
                       {new Date(message.timestamp).toLocaleTimeString()}
                     </div>
                   </div>
+                  
+                  {/* 渲染工具结果 */}
+                  {message.toolResults && (
+                    <div style={{ maxWidth: '80%', marginTop: 8 }}>
+                      <ToolResults toolResults={message.toolResults} />
+                    </div>
+                  )}
                 </List.Item>
               )}
             />
@@ -116,7 +213,7 @@ const AgentTester = ({ agent }) => {
             type="primary" 
             icon={<SendOutlined />} 
             onClick={handleSendMessage}
-            loading={loading}
+            loading={triggeringAgent}
           >
             发送
           </Button>

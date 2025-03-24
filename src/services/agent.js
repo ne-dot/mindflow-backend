@@ -41,3 +41,8 @@ export const  getAgentTools = async (agentId) => {
 export const getAgentModel = async (agentId) => {
   return get(`/api/agents/${agentId}/models`);
 };
+
+// 触发Agent
+ export const triggerAgent = async (agentId, query) => {
+  return post(`api/agents/${agentId}/trigger`, { query });
+};

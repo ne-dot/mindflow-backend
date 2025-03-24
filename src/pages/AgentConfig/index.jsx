@@ -132,12 +132,12 @@ const AgentConfig = () => {
       
       <Layout>
         {/* 左侧 - Prompts编辑 */}
-        <Sider width={400} style={{ background: '#fff', padding: '16px', overflowY: 'auto' }}>
+        <Sider width={400} style={{ background: '#fff', overflowY: 'auto' }}>
           <PromptEditor form={form} />
         </Sider>
         
         {/* 中间 - 工具选择和参数设置 */}
-        <Content style={{ padding: '16px', background: '#fff', overflowY: 'auto' }}>
+        <Content style={{ background: '#fff', overflowY: 'auto' }}>
           <ToolSelector 
             form={form} 
             selectedTools={selectedTools} 
@@ -147,7 +147,7 @@ const AgentConfig = () => {
         </Content>
         
         {/* 右侧 - 测试Agent */}
-        <Sider width={400} style={{ background: '#fff', padding: '16px', overflowY: 'auto' }}>
+        <Sider width={600} style={{ background: '#fff',  overflowY: 'auto' }}>
           <AgentTester agent={agent} />
         </Sider>
       </Layout>
