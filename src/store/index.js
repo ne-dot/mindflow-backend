@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 
 import agentsReducer from './slices/agentsSlice';
+import agentTriggersReducer from './slices/agentTriggersSlice';
 import authReducer from './slices/authSlice';
 import modelsReducer from './slices/modelsSlice';
 import promptsReducer from './slices/promptsSlice';
@@ -13,6 +14,7 @@ const store = configureStore({
     tools: toolsReducer,
     agents: agentsReducer,
     prompts: promptsReducer,
+    agentTriggers: agentTriggersReducer,
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({

@@ -57,6 +57,11 @@ const MainLayout = ({ children }) => {
       label: <Link to="/models">模型管理</Link>,
     },
     {
+      key: 'agent-triggers',
+      icon: <FileTextOutlined />,
+      label: <Link to="/agent-triggers">Agent触发记录</Link>,
+    },
+    {
       key: 'prompts',
       icon: <FileTextOutlined />,
       label: <Link to="/prompts">Prompt 管理</Link>,

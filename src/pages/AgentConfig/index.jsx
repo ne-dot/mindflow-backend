@@ -80,7 +80,6 @@ const AgentConfig = () => {
             });
           })
           .finally(() => {
-            console.log('保存操作完成');
             setSaving(false);
           });
       }).catch(err => {

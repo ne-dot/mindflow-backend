@@ -4,12 +4,14 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import MainLayout from './layouts/MainLayout';
 import AgentConfig from './pages/AgentConfig';
 import Agents from './pages/Agents';
+import AgentTriggers from './pages/AgentTriggers';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Models from './pages/Models';
 import Prompts from './pages/Prompts';
 import Tools from './pages/Tools';
 import Users from './pages/Users';
+
 import './App.css';
 
 // 简单的身份验证检查
@@ -78,6 +80,14 @@ function App() {
           <PrivateRoute>
             <MainLayout>
               <Prompts />
+            </MainLayout>
+          </PrivateRoute>
+        } />
+
+        <Route path="/agent-triggers" element={
+          <PrivateRoute>
+            <MainLayout>
+              <AgentTriggers />
             </MainLayout>
           </PrivateRoute>
         } />
