@@ -1,5 +1,5 @@
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
-import { Card, Form, Button, Modal, List, Tag } from 'antd';
+import { Card, Form, Button, Modal, List, Tag, Spin } from 'antd';
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
@@ -11,11 +11,17 @@ const ToolSelector = ({ form, selectedTools, setSelectedTools }) => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const { tools, loading } = useSelector(state => state.tools);
+  const { loadingTools } = useSelector(state => state.agents);
   const [isToolModalVisible, setIsToolModalVisible] = useState(false);
+  const [localLoading, setLocalLoading] = useState(false);
 
   // 组件挂载时获取工具列表和Agent的工具列表
   useEffect(() => {
-    dispatch(fetchTools());
+    setLocalLoading(true);
+    dispatch(fetchTools())
+      .finally(() => {
+        setLocalLoading(false);
+      });
     
     if (id) {
       dispatch(fetchAgentTools(id))
@@ -85,14 +91,19 @@ const ToolSelector = ({ form, selectedTools, setSelectedTools }) => {
               onClick={showToolModal} 
               style={{ marginBottom: 16 }}
               icon={<PlusOutlined />}
+              loading={localLoading}
             >
               添加工具
             </Button>
             
-            {selectedTools.length > 0 ? (
+            {localLoading ? (
+              <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                <Spin tip="加载工具列表中..." />
+              </div>
+            ) : selectedTools.length > 0 ? (
               <List
                 bordered
-                loading={loading}
+                loading={loadingTools}
                 dataSource={selectedTools}
                 renderItem={tool => (
                   <List.Item
@@ -130,32 +141,37 @@ const ToolSelector = ({ form, selectedTools, setSelectedTools }) => {
         width={700}
         styles={{ body: { maxHeight: '60vh', overflowY: 'auto' } }}
       >
-        <List
-          itemLayout="horizontal"
-          loading={loading}
-          dataSource={tools}
-          renderItem={tool => {
-            const isSelected = selectedTools.some(t => t.id === tool.id);
-            return (
-              <List.Item
-                onClick={() => toggleToolSelection(tool)}
-                style={{ 
-                  cursor: 'pointer', 
-                  background: isSelected ? '#f0f7ff' : 'transparent',
-                  border: isSelected ? '1px solid #1890ff' : '1px solid transparent',
-                  borderRadius: '4px',
-                  marginBottom: '8px',
-                  padding: '8px'
-                }}
-              >
-                <List.Item.Meta
-                  title={<span>{tool.name} {isSelected && <Tag color="blue">已选择</Tag>}</span>}
-                  description={tool.description}
-                />
-              </List.Item>
-            );
-          }}
-        />
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: '40px 0' }}>
+            <Spin tip="加载工具列表中..." />
+          </div>
+        ) : (
+          <List
+            itemLayout="horizontal"
+            dataSource={tools}
+            renderItem={tool => {
+              const isSelected = selectedTools.some(t => t.id === tool.id);
+              return (
+                <List.Item
+                  onClick={() => toggleToolSelection(tool)}
+                  style={{ 
+                    cursor: 'pointer', 
+                    background: isSelected ? '#f0f7ff' : 'transparent',
+                    border: isSelected ? '1px solid #1890ff' : '1px solid transparent',
+                    borderRadius: '4px',
+                    marginBottom: '8px',
+                    padding: '8px'
+                  }}
+                >
+                  <List.Item.Meta
+                    title={<span>{tool.name} {isSelected && <Tag color="blue">已选择</Tag>}</span>}
+                    description={tool.description}
+                  />
+                </List.Item>
+              );
+            }}
+          />
+        )}
       </Modal>
     </Card>
   );

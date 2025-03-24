@@ -1,6 +1,6 @@
 import { PlusOutlined } from '@ant-design/icons';
 import { Button, Typography, message, Spin } from 'antd';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
@@ -27,17 +27,24 @@ const Agents = () => {
   });
   
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [editingAgent, setEditingAgent] = useState(null);
+  // 使用 useRef 记录是否已经加载过数据
+  const dataLoadedRef = useRef(false);
 
-  // 组件挂载时获取数据
+  // 组件挂载时获取数据，但只在第一次进入页面时请求
   useEffect(() => {
-    dispatch(fetchAgents())
-      .unwrap()
-      .catch(err => {
-        console.error('获取Agent列表出错:', err);
-        message.error(`获取Agent列表失败: ${err}`);
-      });
-  }, [dispatch]);
+    if (!dataLoadedRef.current && agents.length === 0) {
+      dispatch(fetchAgents())
+        .unwrap()
+        .then(() => {
+          // 标记数据已加载
+          dataLoadedRef.current = true;
+        })
+        .catch(err => {
+          console.error('获取Agent列表出错:', err);
+          message.error(`获取Agent列表失败: ${err}`);
+        });
+    }
+  }, [dispatch, agents.length]);
 
   // 显示错误信息
   useEffect(() => {
@@ -58,12 +65,10 @@ const Agents = () => {
 
   const handleCancel = () => {
     setIsModalVisible(false);
-    setEditingAgent(null);
   };
 
   const handleSuccess = () => {
     setIsModalVisible(false);
-    setEditingAgent(null);
     // 刷新列表
     dispatch(fetchAgents({
       page: pagination.page,

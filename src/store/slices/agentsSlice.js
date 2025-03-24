@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 
 import { getAgents, createAgent, updateAgent, getAgentTools, 
-  deleteAgent, getVisibilityOptions, getStatusOptions, getAgentModel, triggerAgent } from '../../services/agent';
+  deleteAgent, getVisibilityOptions, getStatusOptions, getAgentModel, triggerAgent, getAgentById } from '../../services/agent';
 
 // 异步Action: 获取Agent列表
 export const fetchAgents = createAsyncThunk(
@@ -102,29 +102,12 @@ export const fetchAgentById = createAsyncThunk(
   'agents/fetchAgentById',
   async (id, { rejectWithValue }) => {
     try {
-      // 这里将来会实现真正的API调用
-      // const response = await agentService.getAgentById(id);
-      // return response;
-      
-      // 临时返回mock数据
-      return {
-        success: true,
-        message: "操作成功",
-        data: {
-          key_id: id,
-          name: "测试Agent",
-          name_zh: "测试Agent中文名",
-          name_en: "Test Agent",
-          description: "这是一个测试用的Agent描述",
-          pricing: 9.99,
-          visibility: "public",
-          status: "published",
-          type: "assistant",
-          prompt: "你是一个有用的AI助手，请帮助用户解决问题。",
-          create_date: Math.floor(Date.now() / 1000),
-          update_date: Math.floor(Date.now() / 1000)
-        }
-      };
+      const response = await getAgentById(id);
+      if (response.success) {
+        return response.data.agent;
+      } else {
+        return rejectWithValue(response.message || '获取Agent详情失败');
+      }
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
     }
@@ -287,6 +270,7 @@ const agentsSlice = createSlice({
       })
       .addCase(fetchAgentById.fulfilled, (state, action) => {
         state.loading = false;
+        state.agent = action.payload;
       })
       .addCase(fetchAgentById.rejected, (state, action) => {
         state.loading = false;

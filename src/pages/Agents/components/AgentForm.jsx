@@ -5,9 +5,9 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import { 
   createAgentConfig, 
+  updateAgentConfig,
   getVisibilityDisplay,
-  getStatusDisplay,
-  fetchAgents
+  getStatusDisplay
 } from '../../../store/slices/agentsSlice';
 
 const { Option } = Select;
@@ -58,25 +58,27 @@ const AgentForm = ({ visible, agent, onCancel, onSuccess }) => {
         pricing: price // 确保使用pricing字段而不是price
       };
       
-      // 添加新Agent
-      dispatch(createAgentConfig(agentData))
+      // 根据是否有agent决定是创建还是更新
+      const action = agent 
+        ? dispatch(updateAgentConfig({ id: agent.key_id || agent.id, data: agentData }))
+        : dispatch(createAgentConfig(agentData));
+      
+      action
         .unwrap()
         .then((response) => {
-          message.success('Agent已添加');
+          message.success(agent ? 'Agent已更新' : 'Agent已添加');
           // 调用onSuccess回调，确保刷新列表
           onSuccess();
-          fetchAgents();
           // 关闭模态框
           onCancel();
         })
         .catch(err => {
-          console.error('添加Agent出错:', err);
-          message.error(err.message || '添加失败');
+          console.error(agent ? '更新Agent出错:' : '添加Agent出错:', err);
+          message.error(err.message || (agent ? '更新失败' : '添加失败'));
         })
         .finally(() => {
           // 无论成功失败，都关闭loading状态
           setLoading(false);
-          onCancel();
         });
     });
   };

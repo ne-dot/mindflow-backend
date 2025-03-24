@@ -11,10 +11,12 @@ const PromptEditor = ({ form }) => {
   const { id } = useParams();
   const dispatch = useDispatch();
   const [activeKey, setActiveKey] = useState('zh');
-
+  const [loading, setLoading] = useState(false);
+  
   // 获取Agent的prompts数据
   useEffect(() => {
     if (id) {
+      setLoading(true);
       dispatch(fetchAgentPrompts(id))
         .unwrap()
         .then(prompts => {
@@ -27,6 +29,9 @@ const PromptEditor = ({ form }) => {
               prompt_en: prompt.content_en
             });
           }
+        })
+        .finally(() => {
+          setLoading(false);
         });
     }
   }, [id, form, dispatch]);
@@ -46,7 +51,13 @@ const PromptEditor = ({ form }) => {
             name="prompt_zh"
             rules={[{ required: true, message: '请输入中文Prompt' }]}
           >
-            <TextArea rows={20} placeholder="请输入Agent的中文Prompt" />
+            {loading ? (
+              <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                <Spin tip="加载Prompt中..." />
+              </div>
+            ) : (
+              <TextArea rows={20} placeholder="请输入Agent的中文Prompt" />
+            )}
           </Form.Item>
         </Form>
       )
@@ -60,7 +71,13 @@ const PromptEditor = ({ form }) => {
             name="prompt_en"
             rules={[{ required: true, message: '请输入英文Prompt' }]}
           >
-            <TextArea rows={20} placeholder="请输入Agent的英文Prompt" />
+            {loading ? (
+              <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                <Spin tip="加载Prompt中..." />
+              </div>
+            ) : (
+              <TextArea rows={20} placeholder="请输入Agent的英文Prompt" />
+            )}
           </Form.Item>
         </Form>
       )

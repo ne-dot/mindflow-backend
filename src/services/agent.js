@@ -8,6 +8,11 @@ export const getAgents = async (params) => {
   return get(`/api/agents?page=${page}&page_size=${page_size}`);
 };
 
+// 获取Agent详情
+export const getAgentById = async (id) => {
+  return get(`/api/agents/${id}`);
+};
+
 // 创建Agent
 export const createAgent = async (agentData) => {
   return post('/api/agents/create', agentData);
